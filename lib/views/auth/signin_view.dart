@@ -12,11 +12,9 @@ class SignInView extends StatefulWidget {
 }
 
 class _SignInViewState extends State<SignInView> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  bool _isPasswordVisible = false;
 
   void _handleLogin() async {
     if (_formKey.currentState!.validate()) {
@@ -26,14 +24,12 @@ class _SignInViewState extends State<SignInView> {
       await Future.delayed(const Duration(seconds: 1));
 
       final AdminController controller = Get.find<AdminController>();
-      // TODO: Implement actual auth logic here
-      if (_emailController.text == 'admin@yollr.com' &&
-          _passwordController.text == 'admin123') {
+      if (_usernameController.text.isNotEmpty) {
         controller.login();
       } else {
         Get.snackbar(
           'Error',
-          'Invalid credentials',
+          'Please enter a username',
           backgroundColor: AppTheme.errorColor,
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,
@@ -116,57 +112,23 @@ class _SignInViewState extends State<SignInView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Email Field
+                      // Username Field
                       TextFormField(
-                        controller: _emailController,
+                        controller: _usernameController,
                         style: const TextStyle(color: Colors.white),
                         decoration: _buildInputDecoration(
-                          'Email Address',
-                          Icons.email_outlined,
+                          'Username',
+                          Icons.person_outline_rounded,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          if (!GetUtils.isEmail(value)) {
-                            return 'Please enter a valid email';
+                            return 'Please enter your username';
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 20),
 
-                      // Password Field
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: !_isPasswordVisible,
-                        style: const TextStyle(color: Colors.white),
-                        decoration:
-                            _buildInputDecoration(
-                              'Password',
-                              Icons.lock_outline,
-                            ).copyWith(
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _isPasswordVisible
-                                      ? Icons.visibility
-                                      : Icons.visibility_off,
-                                  color: Colors.white54,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _isPasswordVisible = !_isPasswordVisible;
-                                  });
-                                },
-                              ),
-                            ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
-                          }
-                          return null;
-                        },
-                      ),
                       const SizedBox(height: 32),
 
                       // Sign In Button

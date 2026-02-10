@@ -113,6 +113,14 @@ class Sidebar extends StatelessWidget {
                   ),
                   _buildMenuItem(
                     context,
+                    title: 'Events',
+                    icon: Icons.event_note_rounded,
+                    page: AdminPage.events,
+                    controller: controller,
+                    isCollapsed: isCollapsed,
+                  ),
+                  _buildMenuItem(
+                    context,
                     title: 'User Management',
                     icon: Icons.people_alt_rounded,
                     page: AdminPage.users,
@@ -135,7 +143,7 @@ class Sidebar extends StatelessWidget {
                     controller: controller,
                     isCollapsed: isCollapsed,
                   ),
-                  const SizedBox(height: 20),
+
                   _buildSectionHeader(isCollapsed, "SYSTEM"),
                   _buildMenuItem(
                     context,

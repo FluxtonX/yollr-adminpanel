@@ -18,4 +18,43 @@ class AdminPostService {
       return [];
     }
   }
+
+  Future<List<AdminPostModel>> fetchEventSubmissions() async {
+    try {
+      final response = await _dio.get('/event-submissions/all');
+      if (response.statusCode == 200) {
+        final List submissionsJson = response.data['data'];
+        return submissionsJson
+            .map(
+              (json) =>
+                  AdminPostModel.fromJson(json, type: PostType.submission),
+            )
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching submissions: $e');
+      return [];
+    }
+  }
+
+  Future<bool> deletePost(String id) async {
+    try {
+      final response = await _dio.delete('/posts/$id');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error deleting post: $e');
+      return false;
+    }
+  }
+
+  Future<bool> deleteSubmission(String id) async {
+    try {
+      final response = await _dio.delete('/event-submissions/$id');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error deleting submission: $e');
+      return false;
+    }
+  }
 }

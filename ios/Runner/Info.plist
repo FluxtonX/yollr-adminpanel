@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to the photo library to select event banners.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires access to the camera to take event photos.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app requires access to the microphone for recording videos.</string>
 </dict>
 </plist>

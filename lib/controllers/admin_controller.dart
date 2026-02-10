@@ -1,10 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../core/socket_service.dart';
 import '../core/user_service.dart';
 import '../core/post_service.dart';
 import '../models/post_model.dart';
+import '../core/app_theme.dart';
 
-enum AdminPage { dashboard, users, posts, analytics, settings }
+enum AdminPage { dashboard, users, posts, events, analytics, settings }
 
 class AdminController extends GetxController {
   var currentPage = AdminPage.dashboard.obs;
@@ -63,7 +65,41 @@ class AdminController extends GetxController {
 
   Future<void> loadRecentPosts() async {
     final posts = await _postService.fetchAllPosts();
-    recentPosts.assignAll(posts);
+    final submissions = await _postService.fetchEventSubmissions();
+
+    // Merge and sort by date descending
+    final allContent = [...posts, ...submissions];
+    allContent.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    recentPosts.assignAll(allContent);
+  }
+
+  Future<void> deleteModerationItem(AdminPostModel item) async {
+    bool success = false;
+    if (item.type == PostType.post) {
+      success = await _postService.deletePost(item.id);
+    } else {
+      success = await _postService.deleteSubmission(item.id);
+    }
+
+    if (success) {
+      recentPosts.removeWhere((p) => p.id == item.id);
+      Get.snackbar(
+        'Success',
+        'Item removed successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppTheme.successColor.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+    } else {
+      Get.snackbar(
+        'Error',
+        'Failed to remove item',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppTheme.errorColor.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+    }
   }
 
   void setPage(AdminPage page) {

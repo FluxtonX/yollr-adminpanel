@@ -7,6 +7,7 @@ import '../views/dashboard/dashboard_view.dart';
 import '../views/users/users_view.dart';
 import '../views/posts/posts_view.dart';
 import '../views/analytics/analytics_view.dart';
+import '../views/events/events_view.dart';
 
 class AdminMainScreen extends StatelessWidget {
   const AdminMainScreen({super.key});
@@ -81,6 +82,8 @@ class AdminMainScreen extends StatelessWidget {
                               return const UsersView();
                             case AdminPage.posts:
                               return const PostsView();
+                            case AdminPage.events:
+                              return const EventsView();
                             case AdminPage.analytics:
                               return const AnalyticsView();
                             case AdminPage.settings:

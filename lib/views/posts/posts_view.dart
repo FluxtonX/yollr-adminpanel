@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import '../../controllers/admin_controller.dart';
 import '../../core/app_theme.dart';
 import '../../models/post_model.dart';
+import '../../widgets/video_preview_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PostsView extends StatelessWidget {
   const PostsView({super.key});
@@ -37,14 +39,14 @@ class PostsView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Post Moderation',
+                        'Content Moderation',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const Text(
-                        'Review global moments and remove inappropriate content.',
+                        'Review campus posts and event videos, and remove inappropriate content.',
                         style: TextStyle(color: AppTheme.textSecondaryColor),
                       ),
                     ],
@@ -109,7 +111,13 @@ class PostsView extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                post.imageUrl.isNotEmpty
+                post.type == PostType.submission
+                    ? VideoPreviewWidget(
+                        videoUrl: post.videoUrl ?? '',
+                        autoPlay: false,
+                        showControls: false,
+                      )
+                    : post.imageUrl.isNotEmpty
                     ? Image.network(
                         post.imageUrl,
                         fit: BoxFit.cover,
@@ -135,7 +143,7 @@ class PostsView extends StatelessWidget {
                         ),
                       ),
 
-                // Professional Live Badge
+                // Type Badge (LIVE or VIDEO)
                 Positioned(
                   top: 12,
                   right: 12,
@@ -155,15 +163,17 @@ class PostsView extends StatelessWidget {
                         Container(
                           width: 6,
                           height: 6,
-                          decoration: const BoxDecoration(
-                            color: AppTheme.successColor,
+                          decoration: BoxDecoration(
+                            color: post.type == PostType.post
+                                ? AppTheme.successColor
+                                : Colors.orangeAccent,
                             shape: BoxShape.circle,
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const Text(
-                          'LIVE',
-                          style: TextStyle(
+                        Text(
+                          post.type == PostType.post ? 'POST' : 'VIDEO',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -260,7 +270,62 @@ class PostsView extends StatelessWidget {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {},
+                        onPressed: () async {
+                          if (post.type == PostType.submission) {
+                            Get.dialog(
+                              Dialog(
+                                backgroundColor: Colors.black,
+                                insetPadding: const EdgeInsets.all(20),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    AppBar(
+                                      backgroundColor: Colors.transparent,
+                                      elevation: 0,
+                                      leading: IconButton(
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () => Get.back(),
+                                      ),
+                                      title: const Text('Video Preview'),
+                                    ),
+                                    Flexible(
+                                      child: AspectRatio(
+                                        aspectRatio: 16 / 9,
+                                        child: VideoPreviewWidget(
+                                          videoUrl: post.videoUrl ?? '',
+                                          autoPlay: true,
+                                          showControls: true,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                  ],
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          // For regular posts, open in browser or show image dialog
+                          final url = post.imageUrl;
+                          if (url != null && url.isNotEmpty) {
+                            final uri = Uri.parse(url);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            } else {
+                              Get.snackbar(
+                                'Error',
+                                'Could not launch content',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: AppTheme.errorColor,
+                                colorText: Colors.white,
+                              );
+                            }
+                          }
+                        },
                         icon: const Icon(Icons.visibility_outlined, size: 16),
                         label: const Text(
                           'View',
@@ -281,7 +346,35 @@ class PostsView extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () {},
+                        onPressed: () {
+                          Get.dialog(
+                            AlertDialog(
+                              title: const Text('Delete Post'),
+                              content: const Text(
+                                'Are you sure you want to delete this content? This action cannot be undone.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Get.back(),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Get.back();
+                                    final AdminController controller =
+                                        Get.find<AdminController>();
+                                    controller.deleteModerationItem(post);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.errorColor,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: const Text('Delete'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                         icon: const Icon(Icons.delete_outline, size: 16),
                         label: const Text(
                           'Remove',
