@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/socket_service.dart';
 import '../core/user_service.dart';
 import '../core/post_service.dart';
@@ -23,18 +24,28 @@ class AdminController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // In a real app, check persistent storage (GetStorage/SharedPreferences) here
-    if (isLoggedIn.value) {
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final bool loggedIn = prefs.getBool('admin_is_logged_in') ?? false;
+    if (loggedIn) {
+      isLoggedIn.value = true;
       _initServices();
     }
   }
 
-  void login() {
+  Future<void> login() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('admin_is_logged_in', true);
     isLoggedIn.value = true;
     _initServices();
   }
 
-  void logout() {
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('admin_is_logged_in', false);
     isLoggedIn.value = false;
     _socketService.disconnect();
     currentPage.value = AdminPage.dashboard;

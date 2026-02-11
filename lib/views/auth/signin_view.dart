@@ -12,7 +12,7 @@ class SignInView extends StatefulWidget {
 }
 
 class _SignInViewState extends State<SignInView> {
-  final _usernameController = TextEditingController();
+  final _usernameController = TextEditingController(text: 'Yollr Admin');
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
@@ -116,9 +116,11 @@ class _SignInViewState extends State<SignInView> {
                       TextFormField(
                         controller: _usernameController,
                         style: const TextStyle(color: Colors.white),
+                        onChanged: (value) => setState(() {}),
                         decoration: _buildInputDecoration(
                           'Username',
                           Icons.person_outline_rounded,
+                          controller: _usernameController,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -182,11 +184,24 @@ class _SignInViewState extends State<SignInView> {
     );
   }
 
-  InputDecoration _buildInputDecoration(String label, IconData icon) {
+  InputDecoration _buildInputDecoration(
+    String label,
+    IconData icon, {
+    TextEditingController? controller,
+  }) {
     return InputDecoration(
       labelText: label,
       labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
       prefixIcon: Icon(icon, color: Colors.white54),
+      suffixIcon: controller != null && controller.text.isNotEmpty
+          ? IconButton(
+              icon: const Icon(Icons.clear_rounded, color: Colors.white38),
+              onPressed: () {
+                controller.clear();
+                setState(() {}); // Refresh to hide clear button
+              },
+            )
+          : null,
       filled: true,
       fillColor: Colors.black.withOpacity(0.2),
       border: OutlineInputBorder(

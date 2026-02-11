@@ -242,26 +242,29 @@ class _EventsViewState extends State<EventsView> {
                               ),
                             ],
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: event.isLive
-                                  ? Colors.red.withOpacity(0.1)
-                                  : Colors.blue.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              event.isLive ? 'LIVE' : 'UPCOMING',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: event.isLive ? Colors.red : Colors.blue,
+                          if (DateTime.now().isBefore(event.endDate))
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: event.isLive
+                                    ? Colors.red.withOpacity(0.1)
+                                    : Colors.blue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                event.isLive ? 'LIVE' : 'UPCOMING',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: event.isLive
+                                      ? Colors.red
+                                      : Colors.blue,
+                                ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ],
