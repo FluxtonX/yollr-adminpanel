@@ -21,14 +21,17 @@ class AdminUserService {
 
   Future<Map<String, dynamic>> fetchStats() async {
     try {
-      final response = await _dio.get('/users/all?limit=1');
+      final response = await _dio.get('/users/stats');
       if (response.statusCode == 200) {
-        return {'totalUsers': response.data['total'] ?? 0};
+        return {
+          'totalUsers': response.data['totalUsers'] ?? 0,
+          'activeUsers': response.data['activeUsers'] ?? 0,
+        };
       }
-      return {'totalUsers': 0};
+      return {'totalUsers': 0, 'activeUsers': 0};
     } catch (e) {
       print('Error fetching stats: $e');
-      return {'totalUsers': 0};
+      return {'totalUsers': 0, 'activeUsers': 0};
     }
   }
 }

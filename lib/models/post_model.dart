@@ -11,6 +11,7 @@ class AdminPostModel {
   final String campus;
   final DateTime createdAt;
   final PostType type;
+  final String status; // pending, approved, rejected
 
   AdminPostModel({
     required this.id,
@@ -23,6 +24,7 @@ class AdminPostModel {
     required this.campus,
     required this.createdAt,
     this.type = PostType.post,
+    this.status = 'pending',
   });
 
   factory AdminPostModel.fromJson(
@@ -42,6 +44,7 @@ class AdminPostModel {
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
       type: type,
+      status: json['status'] ?? 'pending',
     );
   }
 }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../core/socket_service.dart';
 import '../core/user_service.dart';
 import '../core/post_service.dart';
 import '../models/post_model.dart';
 import '../core/app_theme.dart';
+import 'dart:async';
 
 enum AdminPage { dashboard, users, posts, events, analytics, settings }
 
@@ -17,9 +17,9 @@ class AdminController extends GetxController {
   var isLoggedIn = false.obs;
   var recentPosts = <AdminPostModel>[].obs;
 
-  final AdminSocketService _socketService = AdminSocketService();
   final AdminUserService _userService = AdminUserService();
   final AdminPostService _postService = AdminPostService();
+  Timer? _statsTimer;
 
   @override
   void onInit() {
@@ -47,31 +47,25 @@ class AdminController extends GetxController {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('admin_is_logged_in', false);
     isLoggedIn.value = false;
-    _socketService.disconnect();
+    _statsTimer?.cancel();
     currentPage.value = AdminPage.dashboard;
   }
 
   void _initServices() {
-    _socketService.connect(
-      onActiveUsersUpdate: (count) {
-        activeUsers.value = count;
-      },
-      onNewPost: (data) {
-        final newPost = AdminPostModel.fromJson(data);
-        recentPosts.insert(0, newPost);
-        // Keep only last 50 for memory efficiency
-        if (recentPosts.length > 50) {
-          recentPosts.removeLast();
-        }
-      },
-    );
+    // Initial fetch
     fetchStats();
     loadRecentPosts();
+
+    // Set up periodic polling for stats (every 30 seconds)
+    _statsTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      fetchStats();
+    });
   }
 
   Future<void> fetchStats() async {
     final stats = await _userService.fetchStats();
     totalUsers.value = stats['totalUsers'] ?? 0;
+    activeUsers.value = stats['activeUsers'] ?? 0;
   }
 
   Future<void> loadRecentPosts() async {
@@ -113,6 +107,96 @@ class AdminController extends GetxController {
     }
   }
 
+  Future<void> approveModerationItem(AdminPostModel item) async {
+    bool success = false;
+    if (item.type == PostType.post) {
+      success = await _postService.approvePost(item.id);
+    } else {
+      success = await _postService.approveSubmission(item.id);
+    }
+
+    if (success) {
+      // Update the item's status in the list
+      final index = recentPosts.indexWhere((p) => p.id == item.id);
+      if (index != -1) {
+        recentPosts[index] = AdminPostModel(
+          id: item.id,
+          uid: item.uid,
+          username: item.username,
+          profileImage: item.profileImage,
+          imageUrl: item.imageUrl,
+          videoUrl: item.videoUrl,
+          caption: item.caption,
+          campus: item.campus,
+          createdAt: item.createdAt,
+          type: item.type,
+          status: 'approved',
+        );
+        recentPosts.refresh();
+      }
+      Get.snackbar(
+        'Success',
+        'Item approved successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppTheme.successColor.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+    } else {
+      Get.snackbar(
+        'Error',
+        'Failed to approve item',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppTheme.errorColor.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Future<void> rejectModerationItem(AdminPostModel item) async {
+    bool success = false;
+    if (item.type == PostType.post) {
+      success = await _postService.rejectPost(item.id);
+    } else {
+      success = await _postService.rejectSubmission(item.id);
+    }
+
+    if (success) {
+      // Update the item's status in the list
+      final index = recentPosts.indexWhere((p) => p.id == item.id);
+      if (index != -1) {
+        recentPosts[index] = AdminPostModel(
+          id: item.id,
+          uid: item.uid,
+          username: item.username,
+          profileImage: item.profileImage,
+          imageUrl: item.imageUrl,
+          videoUrl: item.videoUrl,
+          caption: item.caption,
+          campus: item.campus,
+          createdAt: item.createdAt,
+          type: item.type,
+          status: 'rejected',
+        );
+        recentPosts.refresh();
+      }
+      Get.snackbar(
+        'Success',
+        'Item rejected successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppTheme.successColor.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+    } else {
+      Get.snackbar(
+        'Error',
+        'Failed to reject item',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppTheme.errorColor.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+    }
+  }
+
   void setPage(AdminPage page) {
     currentPage.value = page;
   }
@@ -123,7 +207,7 @@ class AdminController extends GetxController {
 
   @override
   void onClose() {
-    _socketService.disconnect();
+    _statsTimer?.cancel();
     super.onClose();
   }
 }

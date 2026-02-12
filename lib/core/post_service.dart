@@ -57,4 +57,44 @@ class AdminPostService {
       return false;
     }
   }
+
+  Future<bool> approvePost(String id) async {
+    try {
+      final response = await _dio.put('/posts/$id/approve');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error approving post: $e');
+      return false;
+    }
+  }
+
+  Future<bool> rejectPost(String id) async {
+    try {
+      final response = await _dio.put('/posts/$id/reject');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error rejecting post: $e');
+      return false;
+    }
+  }
+
+  Future<bool> approveSubmission(String id) async {
+    try {
+      final response = await _dio.put('/event-submissions/$id/approve');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error approving submission: $e');
+      return false;
+    }
+  }
+
+  Future<bool> rejectSubmission(String id) async {
+    try {
+      final response = await _dio.put('/event-submissions/$id/reject');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error rejecting submission: $e');
+      return false;
+    }
+  }
 }
