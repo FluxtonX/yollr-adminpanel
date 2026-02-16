@@ -13,4 +13,8 @@ flutter --version
 echo "Building Flutter Web..."
 flutter build web --release
 
+echo "Moving build to public folder..."
+rm -rf public
+mv build/web public
+
 echo "Done!"

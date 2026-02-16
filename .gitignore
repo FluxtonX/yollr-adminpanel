@@ -47,6 +47,7 @@ app.*.map.json
 # Vercel/Node related
 /flutter/
 node_modules/
+/public/
 .vercel
 package-lock.json
 
