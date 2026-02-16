@@ -1,0 +1,66 @@
+{
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "yollr-e70fa",
+          "configurations": {
+            "android": "1:599559124740:android:2cc88322bc19af4d32c251",
+            "ios": "1:599559124740:ios:45c73a27a3267ecb32c251",
+            "web": "1:599559124740:web:933d2a4faace495532c251"
+          }
+        }
+      },
+      "android": {
+        "default": {
+          "projectId": "yollr-e70fa",
+          "appId": "1:599559124740:android:2cc88322bc19af4d32c251",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "yollr-e70fa",
+          "appId": "1:599559124740:ios:45c73a27a3267ecb32c251",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "function": "apiProxy"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "599559124740",
+    "project_id": "yollr-e70fa",
+    "storage_bucket": "yollr-e70fa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:599559124740:android:2cc88322bc19af4d32c251",
+        "android_client_info": {
+          "package_name": "com.example.yollr_admin_panel"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAk1ZxojgYExdpunalcT1Cyh2E6MCMo18Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:599559124740:android:44c992a42dd02d5f32c251",
+        "android_client_info": {
+          "package_name": "com.yollr.fluxtonx"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAk1ZxojgYExdpunalcT1Cyh2E6MCMo18Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

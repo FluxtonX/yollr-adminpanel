@@ -1,4 +1,9 @@
+import 'package:flutter/foundation.dart';
+
 class AppConstants {
-  static const String baseUrl = 'http://127.0.0.1:3000/api';
-  // static const String baseUrl = 'http://18.208.248.234:3000/api';
+  // Use relative path '/api' in release mode (for Vercel proxy) 
+  // and direct IP in development mode.
+  static const String baseUrl = kReleaseMode 
+      ? '/api' 
+      : 'http://18.208.248.234:3000/api';
 }
