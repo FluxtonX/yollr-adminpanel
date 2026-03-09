@@ -35,103 +35,199 @@ class _EventsViewState extends State<EventsView> {
     }
   }
 
+  Future<void> _deleteEvent(AdminEventModel event) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.secondaryColor,
+          title:
+              const Text('Delete Event', style: TextStyle(color: Colors.white)),
+          content: Text(
+            'Are you sure you want to delete "${event.title}"?\nThis action cannot be undone.',
+            style: const TextStyle(color: Colors.white70),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child:
+                  const Text('Cancel', style: TextStyle(color: Colors.white70)),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+              child: const Text('Delete'),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      if (!mounted) return;
+      setState(() => _isLoading = true);
+      final bool success = await _service.deleteEvent(event.id);
+      if (success) {
+        _fetchEvents();
+      } else {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete event')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Text(
-                'Events Management',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const Spacer(),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  final result = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => const CreateEventDialog(),
-                  );
-                  if (result == true) {
-                    _fetchEvents();
-                  }
-                },
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('Create Event'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ],
-          ),
+    bool isMobile = MediaQuery.of(context).size.width < 600;
 
-          const SizedBox(height: 32),
-
-          Expanded(
-            child: _isLoading
+    return SingleChildScrollView(
+      child: Container(
+        padding: EdgeInsets.all(isMobile ? 16 : 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            isMobile
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Events Management',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: _buildCreateButton(),
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Events Management',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      _buildCreateButton(),
+                    ],
+                  ),
+            SizedBox(height: isMobile ? 24 : 32),
+            _isLoading
                 ? const Center(
                     child: CircularProgressIndicator(
                       color: AppTheme.primaryColor,
                     ),
                   )
                 : _events.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.event_rounded,
-                          size: 64,
-                          color: AppTheme.textSecondaryColor,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'No events found',
-                          style: TextStyle(color: AppTheme.textSecondaryColor),
-                        ),
-                        const SizedBox(height: 24),
-                        TextButton.icon(
-                          onPressed: _fetchEvents,
-                          icon: const Icon(Icons.refresh_rounded),
-                          label: const Text('Refresh'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppTheme.primaryColor,
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.event_rounded,
+                            size: 64,
+                            color: AppTheme.textSecondaryColor,
                           ),
-                        ),
-                      ],
-                    ),
-                  )
-                : GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 24,
-                          mainAxisSpacing: 24,
-                          childAspectRatio: 1.1,
-                        ),
-                    itemCount: _events.length,
-                    itemBuilder: (context, index) {
-                      final event = _events[index];
-                      return _buildEventCard(context, event);
-                    },
-                  ),
-          ),
-        ],
+                          const SizedBox(height: 16),
+                          const Text(
+                            'No events found',
+                            style:
+                                TextStyle(color: AppTheme.textSecondaryColor),
+                          ),
+                          const SizedBox(height: 24),
+                          TextButton.icon(
+                            onPressed: _fetchEvents,
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: const Text('Refresh'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppTheme.primaryColor,
+                            ),
+                          ),
+                        ],
+                      )
+                    : LayoutBuilder(
+                        builder: (context, constraints) {
+                          int crossAxisCount = 1;
+                          if (constraints.maxWidth > 1400) {
+                            crossAxisCount = 4;
+                          } else if (constraints.maxWidth > 1100) {
+                            crossAxisCount = 3;
+                          } else if (constraints.maxWidth > 700) {
+                            crossAxisCount = 2;
+                          }
+
+                          // Higher aspect ratio for mobile/small cards to give more vertical space
+                          double aspectRatio = constraints.maxWidth < 500
+                              ? 1.5
+                              : (constraints.maxWidth < 800 ? 1.3 : 1.1);
+
+                          return GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: crossAxisCount,
+                              crossAxisSpacing: 24,
+                              mainAxisSpacing: 24,
+                              childAspectRatio: aspectRatio,
+                            ),
+                            itemCount: _events.length,
+                            itemBuilder: (context, index) {
+                              final event = _events[index];
+                              return _buildEventCard(context, event);
+                            },
+                          );
+                        },
+                      ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCreateButton() {
+    return ElevatedButton.icon(
+      onPressed: () async {
+        final result = await showDialog<bool>(
+          context: context,
+          builder: (context) => const CreateEventDialog(),
+        );
+        if (result == true) {
+          _fetchEvents();
+        }
+      },
+      icon: const Icon(Icons.add_rounded),
+      label: const Text('Create Event'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.black,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 24,
+          vertical: 16,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
       ),
     );
   }
@@ -166,29 +262,57 @@ class _EventsViewState extends State<EventsView> {
               // Event Banner Placeholder
               Expanded(
                 flex: 3,
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.black26,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(20),
+                child: Stack(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.black26,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
+                        image: event.bannerImage != null
+                            ? DecorationImage(
+                                image: NetworkImage(event.bannerImage!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: event.bannerImage == null
+                          ? const Center(
+                              child: Icon(
+                                Icons.image_rounded,
+                                size: 40,
+                                color: Colors.white10,
+                              ),
+                            )
+                          : null,
                     ),
-                    image: event.bannerImage != null
-                        ? DecorationImage(
-                            image: NetworkImage(event.bannerImage!),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                  ),
-                  child: event.bannerImage == null
-                      ? const Center(
-                          child: Icon(
-                            Icons.image_rounded,
-                            size: 40,
-                            color: Colors.white10,
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            _deleteEvent(event);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.delete_outline_rounded,
+                              color: Colors.redAccent,
+                              size: 20,
+                            ),
                           ),
-                        )
-                      : null,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Expanded(
@@ -197,33 +321,37 @@ class _EventsViewState extends State<EventsView> {
                   padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            event.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.outfit(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              event.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.outfit(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            event.description,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white.withOpacity(0.5),
+                            const SizedBox(height: 4),
+                            Expanded(
+                              child: Text(
+                                event.description,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white.withOpacity(0.5),
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -243,25 +371,28 @@ class _EventsViewState extends State<EventsView> {
                             ],
                           ),
                           if (DateTime.now().isBefore(event.endDate))
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: event.isLive
-                                    ? Colors.red.withOpacity(0.1)
-                                    : Colors.blue.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                event.isLive ? 'LIVE' : 'UPCOMING',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
                                   color: event.isLive
-                                      ? Colors.red
-                                      : Colors.blue,
+                                      ? Colors.red.withOpacity(0.1)
+                                      : Colors.blue.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  event.isLive ? 'LIVE' : 'UPCOMING',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color:
+                                        event.isLive ? Colors.red : Colors.blue,
+                                  ),
                                 ),
                               ),
                             ),

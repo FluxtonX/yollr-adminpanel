@@ -63,4 +63,14 @@ class AdminEventService {
       return false;
     }
   }
+
+  Future<bool> deleteEvent(String eventId) async {
+    try {
+      final response = await _dio.delete('/events/$eventId');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error deleting event: $e');
+      return false;
+    }
+  }
 }

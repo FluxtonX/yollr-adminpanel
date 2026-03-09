@@ -96,14 +96,12 @@ class _CreateEventDialogState extends State<CreateEventDialog> {
         setState(() {
           if (isStart) {
             _startDate = finalDateTime;
-            _startDateController.text = "${finalDateTime.toLocal()}"
-                .split('.')[0]
-                .substring(0, 16);
+            _startDateController.text =
+                "${finalDateTime.toLocal()}".split('.')[0].substring(0, 16);
           } else {
             _endDate = finalDateTime;
-            _endDateController.text = "${finalDateTime.toLocal()}"
-                .split('.')[0]
-                .substring(0, 16);
+            _endDateController.text =
+                "${finalDateTime.toLocal()}".split('.')[0].substring(0, 16);
           }
         });
       }
@@ -293,21 +291,6 @@ class _CreateEventDialogState extends State<CreateEventDialog> {
                 ),
                 const SizedBox(height: 16),
 
-                const Text(
-                  'Upload Rules (optional)',
-                  style: TextStyle(color: Colors.white70, fontSize: 12),
-                ),
-                const SizedBox(height: 8),
-                CustomTextField(
-                  hintText: 'Enter rules for video uploads...',
-                  controller: _rulesController,
-                  maxLines: 3,
-                  avatarColor: Colors.amberAccent,
-                  avatarIcon: Icons.gavel_rounded,
-                ),
-                const SizedBox(height: 24),
-
-                // Live Status Toggle
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(

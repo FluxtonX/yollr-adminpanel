@@ -1,16 +1,72 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/app_theme.dart';
 import '../../core/event_service.dart';
 import '../../models/event_model.dart';
 
-class EventDetailView extends StatelessWidget {
+class EventDetailView extends StatefulWidget {
   final AdminEventModel event;
 
   const EventDetailView({super.key, required this.event});
 
   @override
+  State<EventDetailView> createState() => _EventDetailViewState();
+}
+
+class _EventDetailViewState extends State<EventDetailView> {
+  late Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  String _getTimeRemainingString() {
+    final now = DateTime.now();
+    if (now.isBefore(widget.event.startDate)) {
+      Duration diff = widget.event.startDate.difference(now);
+      return "Starts in: ${_formatDuration(diff)}";
+    } else if (now.isBefore(widget.event.endDate)) {
+      Duration diff = widget.event.endDate.difference(now);
+      return "Ends in: ${_formatDuration(diff)}";
+    } else {
+      return "Event Ended";
+    }
+  }
+
+  String _formatDuration(Duration duration) {
+    int days = duration.inDays;
+    int hours = duration.inHours % 24;
+    int minutes = duration.inMinutes % 60;
+    return "${days.toString().padLeft(2, '0')}d : ${hours.toString().padLeft(2, '0')}h : ${minutes.toString().padLeft(2, '0')}m";
+  }
+
+  Color _getTimerColor() {
+    final now = DateTime.now();
+    if (now.isBefore(widget.event.startDate)) {
+      return AppTheme.primaryColor; // Greenish/Yellow in the theme
+    } else if (now.isBefore(widget.event.endDate)) {
+      return Colors.blueAccent;
+    } else {
+      return Colors.redAccent;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final event = widget.event;
     return Scaffold(
       backgroundColor: AppTheme.darkBgColor,
       appBar: AppBar(
@@ -84,25 +140,25 @@ class EventDetailView extends StatelessWidget {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.1),
+                          color: _getTimerColor().withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: AppTheme.primaryColor.withOpacity(0.3),
+                            color: _getTimerColor().withOpacity(0.3),
                           ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.timer_outlined,
-                              color: AppTheme.primaryColor,
+                              color: _getTimerColor(),
                               size: 18,
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Starts in: 02d : 14h : 30m',
+                              _getTimeRemainingString(),
                               style: GoogleFonts.outfit(
-                                color: AppTheme.primaryColor,
+                                color: _getTimerColor(),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -270,7 +326,7 @@ class EventDetailView extends StatelessWidget {
     if (confirmed == true) {
       final service = AdminEventService();
       final success = await service.selectWinner(
-        event.id,
+        widget.event.id,
       ); // Assuming AdminEventModel has 'id'
 
       if (context.mounted) {
@@ -332,7 +388,7 @@ class EventDetailView extends StatelessWidget {
             Icon(Icons.calendar_today_rounded, color: color, size: 16),
             const SizedBox(width: 8),
             Text(
-              "${date.toLocal()}".split(' ')[0],
+              "${date.toLocal()}".split('.')[0].substring(0, 16),
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 color: Colors.white,

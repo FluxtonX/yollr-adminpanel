@@ -118,30 +118,31 @@ class PostsView extends StatelessWidget {
                         showControls: false,
                       )
                     : post.imageUrl.isNotEmpty
-                    ? Image.network(
-                        post.imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          color: Colors.white10,
-                          child: const Center(
-                            child: Icon(
-                              Icons.broken_image,
-                              color: Colors.white24,
-                              size: 32,
+                        ? Image.network(
+                            post.imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                              color: Colors.white10,
+                              child: const Center(
+                                child: Icon(
+                                  Icons.broken_image,
+                                  color: Colors.white24,
+                                  size: 32,
+                                ),
+                              ),
+                            ),
+                          )
+                        : Container(
+                            color: Colors.white10,
+                            child: const Center(
+                              child: Icon(
+                                Icons.image_not_supported,
+                                color: Colors.white24,
+                                size: 32,
+                              ),
                             ),
                           ),
-                        ),
-                      )
-                    : Container(
-                        color: Colors.white10,
-                        child: const Center(
-                          child: Icon(
-                            Icons.image_not_supported,
-                            color: Colors.white24,
-                            size: 32,
-                          ),
-                        ),
-                      ),
 
                 // Type Badge (LIVE or VIDEO)
                 Positioned(
@@ -184,32 +185,6 @@ class PostsView extends StatelessWidget {
                     ),
                   ),
                 ),
-
-                // Status Badge
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(post.status).withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: Colors.white12),
-                    ),
-                    child: Text(
-                      post.status.toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -227,8 +202,7 @@ class PostsView extends StatelessWidget {
                       radius: 16,
                       backgroundColor: Colors.white10,
                       child: ClipOval(
-                        child:
-                            (post.profileImage != null &&
+                        child: (post.profileImage != null &&
                                 post.profileImage!.isNotEmpty)
                             ? Image.network(
                                 post.profileImage!,
@@ -291,201 +265,137 @@ class PostsView extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // Action Buttons
-                if (post.status == 'pending')
-                  // Pending: Show Approve and Reject buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            final AdminController controller =
-                                Get.find<AdminController>();
-                            controller.approveModerationItem(post);
-                          },
-                          icon: const Icon(
-                            Icons.check_circle_outline,
-                            size: 16,
-                          ),
-                          label: const Text(
-                            'Approve',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            backgroundColor: AppTheme.successColor.withOpacity(
-                              0.15,
-                            ),
-                            foregroundColor: AppTheme.successColor,
-                            elevation: 0,
-                            shadowColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            final AdminController controller =
-                                Get.find<AdminController>();
-                            controller.rejectModerationItem(post);
-                          },
-                          icon: const Icon(Icons.cancel_outlined, size: 16),
-                          label: const Text(
-                            'Reject',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            backgroundColor: AppTheme.errorColor.withOpacity(
-                              0.15,
-                            ),
-                            foregroundColor: AppTheme.errorColor,
-                            elevation: 0,
-                            shadowColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                else
-                  // Approved/Rejected: Show View and Remove buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
-                            if (post.type == PostType.submission) {
-                              Get.dialog(
-                                Dialog(
-                                  backgroundColor: Colors.black,
-                                  insetPadding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      AppBar(
-                                        backgroundColor: Colors.transparent,
-                                        elevation: 0,
-                                        leading: IconButton(
-                                          icon: const Icon(Icons.close),
-                                          onPressed: () => Get.back(),
-                                        ),
-                                        title: const Text('Video Preview'),
-                                      ),
-                                      Flexible(
-                                        child: AspectRatio(
-                                          aspectRatio: 16 / 9,
-                                          child: VideoPreviewWidget(
-                                            videoUrl: post.videoUrl ?? '',
-                                            autoPlay: true,
-                                            showControls: true,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 20),
-                                    ],
-                                  ),
-                                ),
-                              );
-                              return;
-                            }
-
-                            // For regular posts, open in browser or show image dialog
-                            final url = post.imageUrl;
-                            if (url != null && url.isNotEmpty) {
-                              final uri = Uri.parse(url);
-                              if (await canLaunchUrl(uri)) {
-                                await launchUrl(
-                                  uri,
-                                  mode: LaunchMode.externalApplication,
-                                );
-                              } else {
-                                Get.snackbar(
-                                  'Error',
-                                  'Could not launch content',
-                                  snackPosition: SnackPosition.BOTTOM,
-                                  backgroundColor: AppTheme.errorColor,
-                                  colorText: Colors.white,
-                                );
-                              }
-                            }
-                          },
-                          icon: const Icon(Icons.visibility_outlined, size: 16),
-                          label: const Text(
-                            'View',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            side: BorderSide(
-                              color: Colors.white.withOpacity(0.1),
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
+                // View and Remove buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          if (post.type == PostType.submission) {
                             Get.dialog(
-                              AlertDialog(
-                                title: const Text('Delete Post'),
-                                content: const Text(
-                                  'Are you sure you want to delete this content? This action cannot be undone.',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Get.back(),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      Get.back();
-                                      final AdminController controller =
-                                          Get.find<AdminController>();
-                                      controller.deleteModerationItem(post);
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppTheme.errorColor,
-                                      foregroundColor: Colors.white,
+                              Dialog(
+                                backgroundColor: Colors.black,
+                                insetPadding: const EdgeInsets.all(20),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    AppBar(
+                                      backgroundColor: Colors.transparent,
+                                      elevation: 0,
+                                      leading: IconButton(
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () => Get.back(),
+                                      ),
+                                      title: const Text('Video Preview'),
                                     ),
-                                    child: const Text('Delete'),
-                                  ),
-                                ],
+                                    Flexible(
+                                      child: AspectRatio(
+                                        aspectRatio: 16 / 9,
+                                        child: VideoPreviewWidget(
+                                          videoUrl: post.videoUrl ?? '',
+                                          autoPlay: true,
+                                          showControls: true,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                  ],
+                                ),
                               ),
                             );
-                          },
-                          icon: const Icon(Icons.delete_outline, size: 16),
-                          label: const Text(
-                            'Remove',
-                            style: TextStyle(fontSize: 12),
+                            return;
+                          }
+
+                          // For regular posts, open in browser or show image dialog
+                          final url = post.imageUrl;
+                          if (url != null && url.isNotEmpty) {
+                            final uri = Uri.parse(url);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            } else {
+                              Get.snackbar(
+                                'Error',
+                                'Could not launch content',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: AppTheme.errorColor,
+                                colorText: Colors.white,
+                              );
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.visibility_outlined, size: 16),
+                        label: const Text(
+                          'View',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: BorderSide(
+                            color: Colors.white.withOpacity(0.1),
                           ),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            backgroundColor: AppTheme.errorColor.withOpacity(
-                              0.15,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Get.dialog(
+                            AlertDialog(
+                              title: const Text('Delete Post'),
+                              content: const Text(
+                                'Are you sure you want to delete this content? This action cannot be undone.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Get.back(),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Get.back();
+                                    final AdminController controller =
+                                        Get.find<AdminController>();
+                                    controller.deleteModerationItem(post);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.errorColor,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: const Text('Delete'),
+                                ),
+                              ],
                             ),
-                            foregroundColor: AppTheme.errorColor,
-                            elevation: 0,
-                            shadowColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.delete_outline, size: 16),
+                        label: const Text(
+                          'Remove',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          backgroundColor: AppTheme.errorColor.withOpacity(
+                            0.15,
+                          ),
+                          foregroundColor: AppTheme.errorColor,
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -514,18 +424,6 @@ class PostsView extends StatelessWidget {
       return '${difference.inMinutes}m ago';
     } else {
       return 'Just now';
-    }
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'approved':
-        return AppTheme.successColor;
-      case 'rejected':
-        return AppTheme.errorColor;
-      case 'pending':
-      default:
-        return Colors.orange;
     }
   }
 }
